@@ -3,6 +3,26 @@
     "Version": "4.3.1",
     "Repositories": [
       {
+        "Name": "BioCsoft",
+        "URL": "https://bioconductor.org/packages/3.18/bioc"
+      },
+      {
+        "Name": "BioCann",
+        "URL": "https://bioconductor.org/packages/3.18/data/annotation"
+      },
+      {
+        "Name": "BioCexp",
+        "URL": "https://bioconductor.org/packages/3.18/data/experiment"
+      },
+      {
+        "Name": "BioCworkflows",
+        "URL": "https://bioconductor.org/packages/3.18/workflows"
+      },
+      {
+        "Name": "BioCbooks",
+        "URL": "https://bioconductor.org/packages/3.18/books"
+      },
+      {
         "Name": "CRAN",
         "URL": "https://cran.rstudio.com"
       }
@@ -62,6 +82,23 @@
         "R"
       ],
       "Hash": "2ecaed86684f5fae76ed5530f9d29c4a"
+    },
+    "DT": {
+      "Package": "DT",
+      "Version": "0.33",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "crosstalk",
+        "htmltools",
+        "htmlwidgets",
+        "httpuv",
+        "jquerylib",
+        "jsonlite",
+        "magrittr",
+        "promises"
+      ],
+      "Hash": "64ff3427f559ce3f2597a4fe13255cb6"
     },
     "DelayedArray": {
       "Package": "DelayedArray",
@@ -413,7 +450,6 @@
       "Package": "S4Vectors",
       "Version": "0.40.2",
       "Source": "Bioconductor",
-      "Repository": "Bioconductor 3.18",
       "Requirements": [
         "BiocGenerics",
         "R",
@@ -1345,6 +1381,18 @@
       ],
       "Hash": "29bb601821609476215720798eecf979"
     },
+    "ggdendro": {
+      "Package": "ggdendro",
+      "Version": "0.2.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "MASS",
+        "R",
+        "ggplot2"
+      ],
+      "Hash": "6c64efa73d60c45946a5e6e3f894fdcd"
+    },
     "ggforce": {
       "Package": "ggforce",
       "Version": "0.4.2",
@@ -1922,6 +1970,19 @@
       ],
       "Hash": "e2fca3e12e4db979dccc6e519b10a7ee"
     },
+    "litedown": {
+      "Package": "litedown",
+      "Version": "0.6",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "commonmark",
+        "utils",
+        "xfun"
+      ],
+      "Hash": "b8f7c3c648c7aa429421b2cee22ed8b1"
+    },
     "lmtest": {
       "Package": "lmtest",
       "Version": "0.9-40",
@@ -1944,6 +2005,19 @@
         "R"
       ],
       "Hash": "7ce2733a9826b3aeb1775d56fd305472"
+    },
+    "markdown": {
+      "Package": "markdown",
+      "Version": "2.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "litedown",
+        "utils",
+        "xfun"
+      ],
+      "Hash": "b4349847250b103bbbb8bc6819c4fbca"
     },
     "matrixStats": {
       "Package": "matrixStats",
@@ -2765,6 +2839,17 @@
         "xtable"
       ],
       "Hash": "4b4477baa9a939c5577e5ddb4bf01f28"
+    },
+    "shinyhelper": {
+      "Package": "shinyhelper",
+      "Version": "0.3.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "markdown",
+        "shiny"
+      ],
+      "Hash": "baef117734d5bd59373a561a15168679"
     },
     "sitmo": {
       "Package": "sitmo",
