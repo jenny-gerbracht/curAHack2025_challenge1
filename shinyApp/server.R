@@ -84,7 +84,31 @@ sctheme <- function(base_size = 24, XYval = TRUE, Xang = 0, XjusH = 0.5){
   } 
   return(oupTheme) 
 } 
- 
+#function to filter dataframe down to the required rows and select columns for plotting
+select_ggData <- function(df_in = inpMeta,
+                          select_columns = c(inpConf[UI == inp1]$ID, inpConf[UI == inp2]$ID),
+                          filter_columns = inpsub1,
+                          filter_values = inpsub2) {
+  ggData <- df_in
+  if (class(filter_values) != "list" && length(filter_columns) == 1){
+    filter_values <- list(filter_values)
+  }#sanitise input in case only one column is parsed with a simple character vector instead of a list.
+  
+  for (i in 1:length(filter_columns)){
+    column <- filter_columns[i]
+    values <- filter_values[[i]]
+    if(!is.null(values)){
+      ggData <- ggData[ggData[[column]] %in% values, ]
+    }
+  } 
+  # Select the specified columns
+  
+  #print(c(select_columns,filter_columns[1]))
+  ggData <- ggData[ ,select_columns, with = FALSE]
+  
+  return(ggData)
+}
+
 ### Common plotting functions 
 # Plot cell information on dimred 
 scDRcell <- function(inpConf, inpMeta, inpdrX, inpdrY, inp1, inpsub1, inpsub2, 
@@ -459,13 +483,25 @@ scProp <- function(inpConf, inpMeta, inp1, inp2, inpsub1, inpsub2,
   
   
   # Prepare ggData 
-  ggData = inpMeta[, c(inpConf[UI == inp1]$ID, inpConf[UI == inp2]$ID, 
-                       inpConf[UI == inpsub1]$ID),  
-                   with = FALSE] 
+  #ggData = inpMeta[, c(inpConf[UI == inp1]$ID, inpConf[UI == inp2]$ID, 
+  #                     inpConf[UI == inpsub1]$ID),  
+  #                 with = FALSE]
+  if (length(inpsub1)>1){
+    third_column = inpConf[UI == inpsub1[1] ]$ID 
+  } else{
+    third_column = inpConf[UI == inpsub1]$ID
+  }
+
+  ggData = select_ggData(df_in = inpMeta,
+                            select_columns = c(inpConf[UI == inp1]$ID, 
+                                               inpConf[UI == inp2]$ID, 
+                                               third_column),
+                           filter_columns = inpsub1,
+                            filter_values = inpsub2)
   colnames(ggData) = c("X", "grp", "sub") 
-  if(length(inpsub2) != 0 & length(inpsub2) != nlevels(ggData$sub)){ 
-    ggData = ggData[sub %in% inpsub2] 
-  } 
+  #if(length(inpsub2) != 0 & length(inpsub2) != nlevels(ggData$sub)){ 
+  #  ggData = ggData[sub %in% inpsub2] 
+ # } 
   ggData = ggData[, .(nCells = .N), by = c("X", "grp")] 
   ggData = ggData[, {tot = sum(nCells) 
                       .SD[,.(pctCells = 100 * sum(nCells) / tot, 
