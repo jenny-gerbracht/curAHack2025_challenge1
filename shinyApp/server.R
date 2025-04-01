@@ -15,6 +15,7 @@ sc1gene = readRDS("sc1gene.rds")
 sc1meta = readRDS("sc1meta.rds")
 
 filterCounter <- reactiveVal(0)
+filter_columns <- reactiveVal(list())
 
 ### Useful stuff 
 # Colour palette 
@@ -44,7 +45,24 @@ g_legend <- function(a.gplot){
   leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")  
   legend <- tmp$grobs[[leg]]  
   legend 
-}  
+} 
+
+get_filter_columns <- function(initial_filter, additional_filters, input) {
+  filters = initial_filter
+  for (filter_col in unlist(additional_filters)) {
+    filters <- c(filters, input[[filter_col]])
+  }
+  return(filters)
+}
+
+get_filter_values <- function(additional_filter_values_indices, input) {
+  values <- list(input[["sc1c2sub2"]])
+  for (filter_index in additional_filter_values_indices) {
+    id <- paste0("sc1c2sub2", filter_index)
+    values <- append(values, list(input[[id]]))
+  }
+  return(values)
+}
  
 # Plot theme 
 sctheme <- function(base_size = 24, XYval = TRUE, Xang = 0, XjusH = 0.5){ 
@@ -433,6 +451,13 @@ scVioBox <- function(inpConf, inpMeta, inp1, inp2,
 scProp <- function(inpConf, inpMeta, inp1, inp2, inpsub1, inpsub2, 
                    inptyp, inpflp, inpfsz){ 
   if(is.null(inpsub1)){inpsub1 = inpConf$UI[1]} 
+  
+  print("filter debug")
+  print(inpsub1)
+  print(inpsub2)
+  print("filter debug done")
+  
+  
   # Prepare ggData 
   ggData = inpMeta[, c(inpConf[UI == inp1]$ID, inpConf[UI == inp2]$ID, 
                        inpConf[UI == inpsub1]$ID),  
@@ -1043,7 +1068,7 @@ shinyServer(function(input, output, session) {
     remove_btn_id <- paste0("sc1c2DeleteFilter", filterCounter())
     container_id <- paste0("sc1c2AdditionalFilter", filterCounter())
     selectList <- paste0("sc1c2sub1", filterCounter())
-    checkGroup <- paste0("sc1c2sub1.ui", filterCounter())
+    checkGroup <- paste0("sc1c2sub2", filterCounter())
     checkAll <- paste0("sc1c2sub1all", filterCounter())
     checkNone <- paste0("sc1c2sub1non", filterCounter())
     
@@ -1062,7 +1087,7 @@ shinyServer(function(input, output, session) {
                            choices = sub, selected = sub),
         div(
           actionButton(checkAll, "Select all groups", class = "btn btn-primary"), 
-          actionButton(checkNone, "Deselect all groups", class = "btn btn-primary"),
+          actionButton(checkNone, "Deselect all groups", class = "btn btn-primary")
         ),
         div(
           style="margin-top:5px;",
@@ -1070,6 +1095,13 @@ shinyServer(function(input, output, session) {
         )
       )
     )
+    
+    
+    tmp <- filter_columns()
+    tmp[[as.character(filterCounter())]] <- selectList
+    filter_columns(tmp)
+    #showNotification(paste(get_filter_columns(input$sc1c2sub1, filter_columns(), input), collapse=","))
+    #x <- get_filter_values(names(filter_columns()), input)
 
     observeEvent(input[[selectList]], {
       sub = strsplit(sc1conf[UI == input[[selectList]]]$fID, "\\|")[[1]]
@@ -1089,12 +1121,17 @@ shinyServer(function(input, output, session) {
     
     observeEvent(input[[remove_btn_id]], {
       removeUI(selector = paste0('#', container_id))
+      tmp <- filter_columns()
+      tmp[[as.character(filterCounter())]] <- NULL
+      filter_columns(tmp)
+      showNotification(paste(get_filter_columns(input$sc1c2sub1, filter_columns(), input), collapse=","))
     }, ignoreInit = TRUE)
   })
 
-output$sc1c2oup <- renderPlot({ 
+output$sc1c2oup <- renderPlot({
   scProp(sc1conf, sc1meta, input$sc1c2inp1, input$sc1c2inp2,  
-         input$sc1c2sub1, input$sc1c2sub2, 
+         get_filter_columns(input$sc1c2sub1, filter_columns(), input), 
+         get_filter_values(names(filter_columns()), input), 
          input$sc1c2typ, input$sc1c2flp, input$sc1c2fsz) 
 }) 
 output$sc1c2oup.ui <- renderUI({ 
