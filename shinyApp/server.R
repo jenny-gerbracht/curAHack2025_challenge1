@@ -547,7 +547,7 @@ scBubbHeat <- function(inpConf, inpMeta, inp, inpGrp, inpPlt,
       sctheme(base_size = sList[inpfsz]) + 
       theme(axis.title = element_blank(), axis.line = element_blank(), 
             axis.ticks = element_blank(), axis.text.y = element_blank(), 
-            axis.text.x = element_text(color="white", angle = 45, hjust = 1)) 
+            axis.text.x = element_text(color="cyan", angle = 45, hjust = 1, size = 0.1)) 
     ggData$geneName = factor(ggData$geneName, levels = hcRow$labels$label) 
   } else { 
     ggData$geneName = factor(ggData$geneName, levels = rev(geneList$gene)) 
