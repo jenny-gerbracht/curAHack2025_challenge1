@@ -8,7 +8,8 @@ library(ggplot2)
 library(ggrepel) 
 library(hdf5r) 
 library(ggdendro) 
-library(gridExtra) 
+library(gridExtra)
+library(plotly)
 sc1conf = readRDS("sc1conf.rds")
 sc1def  = readRDS("sc1def.rds")
 sc1gene = readRDS("sc1gene.rds")
@@ -665,15 +666,18 @@ shinyServer(function(input, output, session) {
     updateCheckboxGroupInput(session, inputId = "sc1a1sub2", label = "Select which cells to show", 
                              choices = sub, selected = sub, inline = TRUE) 
   }) 
-  output$sc1a1oup1 <- renderPlot({ 
-    scDRcell(sc1conf, sc1meta, input$sc1a1drX, input$sc1a1drY, input$sc1a1inp1,  
-             input$sc1a1sub1, input$sc1a1sub2, 
-             input$sc1a1siz, input$sc1a1col1, input$sc1a1ord1, 
-             input$sc1a1fsz, input$sc1a1asp, input$sc1a1txt, input$sc1a1lab1) 
-  }) 
-  output$sc1a1oup1.ui <- renderUI({ 
-    plotOutput("sc1a1oup1", height = pList[input$sc1a1psz]) 
-  }) 
+  output$sc1a1oup1 <- renderPlotly({
+    p <- scDRcell(sc1conf, sc1meta, input$sc1a1drX, input$sc1a1drY, 
+                  input$sc1a1inp1, input$sc1a1sub1, input$sc1a1sub2, 
+                  input$sc1a1siz, input$sc1a1col1, input$sc1a1ord1, 
+                  input$sc1a1fsz, input$sc1a1asp, input$sc1a1txt, input$sc1a1lab1)
+    ggplotly(p, tooltip = "text")
+  })
+  
+  output$sc1a1oup1.ui <- renderUI({
+    plotlyOutput("sc1a1oup1", height = pList[input$sc1a1psz]) 
+  })
+  
   output$sc1a1oup1.pdf <- downloadHandler( 
     filename = function() { paste0("sc1",input$sc1a1drX,"_",input$sc1a1drY,"_",  
                                    input$sc1a1inp1,".pdf") }, 
@@ -703,16 +707,21 @@ shinyServer(function(input, output, session) {
       formatRound(columns = c("pctExpress"), digits = 2) 
   }) 
    
-  output$sc1a1oup2 <- renderPlot({ 
-    scDRgene(sc1conf, sc1meta, input$sc1a1drX, input$sc1a1drY, input$sc1a1inp2,  
-             input$sc1a1sub1, input$sc1a1sub2, 
-             "sc1gexpr.h5", sc1gene, 
-             input$sc1a1siz, input$sc1a1col2, input$sc1a1ord2, 
-             input$sc1a1fsz, input$sc1a1asp, input$sc1a1txt) 
-  }) 
+  output$sc1a1oup2 <- renderPlotly({
+    # Generate the base ggplot using scDRgene
+    p <- scDRgene(sc1conf, sc1meta, input$sc1a1drX, input$sc1a1drY, input$sc1a1inp2,  
+                  input$sc1a1sub1, input$sc1a1sub2, 
+                  "sc1gexpr.h5", sc1gene, 
+                  input$sc1a1siz, input$sc1a1col2, input$sc1a1ord2, 
+                  input$sc1a1fsz, input$sc1a1asp, input$sc1a1txt)
+    # Convert the ggplot to an interactive plot
+    ggplotly(p, tooltip = "text")
+  })
+  
   output$sc1a1oup2.ui <- renderUI({ 
-    plotOutput("sc1a1oup2", height = pList[input$sc1a1psz]) 
-  }) 
+    plotlyOutput("sc1a1oup2", height = pList[input$sc1a1psz]) 
+  })
+  
   output$sc1a1oup2.pdf <- downloadHandler( 
     filename = function() { paste0("sc1",input$sc1a1drX,"_",input$sc1a1drY,"_",  
                                    input$sc1a1inp2,".pdf") }, 

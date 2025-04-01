@@ -5,6 +5,7 @@ library(Matrix)
 library(DT) 
 library(magrittr) 
 library(bslib)
+library(plotly)
 sc1conf = readRDS("sc1conf.rds")
 sc1def  = readRDS("sc1def.rds")
 
@@ -28,8 +29,9 @@ navbarPage(
     h4("Description"),
     "In this tab, users can simultaneously visualize clonotype details 
     (e.g., TCR sequences, clonotype frequencies) 
-    alongside gene expression patterns on low-dimensional embeddings. This allows interactive exploration of relationships between 
-    T-cell clonality and gene-expression profiles within single-cell datasets.",
+    alongside gene expression patterns on low-dimensional embeddings. This allows 
+    interactive exploration of relationships between T-cell clonality and 
+    gene-expression profiles within single-cell datasets.",
     
     
     br(),br(), 
@@ -554,12 +556,14 @@ navbarPage(
    )    # End of fluidRow (4 space) 
  ),     # End of tab (2 space) 
  
- ### Tab1.c1: violinplot / boxplot 
+ ### Tab1.c1: Distribution of Gene Expression 
  tabPanel(
-   HTML("Distribution"),  
+   HTML("Distribution of Gene Expression"),  
    h4("Description"), 
-   "In this tab, users can visualise the gene expression or continuous cell information ",  
-   "(e.g. Number of UMIs / module score) across groups of cells (e.g. libary / clusters).", 
+   "In this tab, users can explore how gene expression levels or continuous cell 
+   information (e.g., UMI counts, module scores) are distributed across different 
+   groups of cells (e.g., clusters or samples). This view allows for comparison 
+   of expression patterns and cell characteristics between defined populations.", 
    br(),br(), 
    fluidRow( 
      column( 
@@ -617,13 +621,14 @@ navbarPage(
    )    # End of fluidRow (4 space) 
  ),     # End of tab (2 space) 
  
-### Tab1.c2: Proportion plot 
+### Tab1.c2: Cell Proportions by Group
 tabPanel( 
-  HTML("Proportion plot"), 
-  h4("Proportion / cell numbers across different cell information"), 
-  "In this tab, users can visualise the composition of single cells based on one discrete ", 
-  "cell information across another discrete cell information. ",  
-  "Usage examples include the library or cellcycle composition across clusters.", 
+  HTML("Cell Proportions by Group"), 
+  h4("Description"), 
+  "In this tab, users can visualize the distribution of cells based on one 
+  discrete feature (e.g., sample, T cell subtype, or cell cycle state) across 
+  another grouping (e.g., clusters or experimental conditions). This helps reveal 
+  shifts in cellular composition and identify group-specific patterns.", 
   br(),br(), 
   fluidRow( 
     column( 
@@ -681,11 +686,13 @@ tabPanel(
  
   ### Tab1.d1: Multiple gene expr 
   tabPanel( 
-    HTML("Bubbleplot / Heatmap"), 
-    h4("Gene expression bubbleplot / heatmap"), 
-    "In this tab, users can visualise the gene expression patterns of ", 
-    "multiple genes grouped by categorical cell information (e.g. library / cluster).", br(), 
-    "The normalised expression are averaged, log-transformed and then plotted.", 
+    HTML("Multi-Gene Expression Map by Group"), 
+    h4("Description"), 
+    "In this tab, users can visualize the average expression levels of selected 
+    genes across cell groups (e.g., clusters, conditions, or samples). Enter up 
+    to 50 gene names to generate a bubble plot or heatmap. Expression values are 
+    normalized, log-transformed, and displayed to reveal gene expression patterns 
+    and group-specific signatures.", 
     br(),br(), 
     fluidRow( 
       column( 
