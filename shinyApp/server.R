@@ -116,7 +116,7 @@ select_ggData <- function(df_in = inpMeta,
   return(ggData)
 }
 
- 
+## function to create dataframes for plotting, including leftovers and  
 
 ### Common plotting functions 
 # Plot cell information on dimred 
@@ -513,7 +513,8 @@ scProp <- function(inpConf, inpMeta, inp1, inp2, inpsub1, inpsub2,
   #if(length(inpsub2) != 0 & length(inpsub2) != nlevels(ggData$sub)){ 
   #  ggData = ggData[sub %in% inpsub2] 
  # } 
-
+  print('number of remaining rows')
+  print(nrow(ggData))
   
 
   ggData = ggData[, .(nCells = .N), by = c("X", "grp")] 
@@ -1349,7 +1350,7 @@ shinyServer(function(input, output, session) {
     }, ignoreInit = TRUE)
   })
 
-output$sc1c2oup <- renderPlotly({
+output$sc1c2oup <- renderPlot({
   scProp(sc1conf, sc1meta, input$sc1c2inp1, input$sc1c2inp2,  
          get_filter_columns(input$sc1c2sub1, filter_columns(), input), 
          get_filter_values(names(filter_columns()), input), 
