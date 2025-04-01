@@ -9,6 +9,8 @@ library(ggrepel)
 library(hdf5r) 
 library(ggdendro) 
 library(gridExtra) 
+#source(functions)
+
 sc1conf = readRDS("sc1conf.rds")
 sc1def  = readRDS("sc1def.rds")
 sc1gene = readRDS("sc1gene.rds")
@@ -66,6 +68,31 @@ sctheme <- function(base_size = 24, XYval = TRUE, Xang = 0, XjusH = 0.5){
   } 
   return(oupTheme) 
 } 
+
+#function to filter dataframe down to the required rows and select columns for plotting
+select_ggData <- function(df_in = inpMeta,
+                          select_columns = c(inpConf[UI == inp1]$ID, inpConf[UI == inp2]$ID),
+                          filter_columns = sc1c2sub1,
+                          filter_values = sc1c2sub2) {
+  ggData <- df_in
+  if (class(filter_values) != "list" && length(filter_columns) == 1){
+    filter_values <- list(filter_values)
+  }#sanitise input in case only one column is parsed with a simple character vector instead of a list.
+  
+  for (i in 1:length(filter_columns)){
+    column <- filter_columns[i]
+    values <- filter_values[[i]]
+    if(!is.null(values)){
+      ggData <- ggData[ggData[[column]] %in% values, ]
+    }
+  } 
+  # Select the specified columns
+  
+  #print(c(select_columns,filter_columns[1]))
+  ggData <- ggData[ ,c(select_columns,filter_columns[1]), with = FALSE]
+  
+  return(ggData)
+}
  
 ### Common plotting functions 
 # Plot cell information on dimred 
@@ -434,13 +461,11 @@ scProp <- function(inpConf, inpMeta, inp1, inp2, inpsub1, inpsub2,
                    inptyp, inpflp, inpfsz){ 
   if(is.null(inpsub1)){inpsub1 = inpConf$UI[1]} 
   # Prepare ggData 
-  ggData = inpMeta[, c(inpConf[UI == inp1]$ID, inpConf[UI == inp2]$ID, 
-                       inpConf[UI == inpsub1]$ID),  
-                   with = FALSE] 
+  ggData = select_ggData(df_in = inpMeta,
+                         select_columns = c(inpConf[UI == inp1]$ID, inpConf[UI == inp2]$ID),
+                          filter_columns = inpsub1,
+                          filter_values = inpsub2)
   colnames(ggData) = c("X", "grp", "sub") 
-  if(length(inpsub2) != 0 & length(inpsub2) != nlevels(ggData$sub)){ 
-    ggData = ggData[sub %in% inpsub2] 
-  } 
   ggData = ggData[, .(nCells = .N), by = c("X", "grp")] 
   ggData = ggData[, {tot = sum(nCells) 
                       .SD[,.(pctCells = 100 * sum(nCells) / tot, 
