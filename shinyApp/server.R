@@ -491,7 +491,8 @@ scProp <- function(inpConf, inpMeta, inp1, inp2, inpsub1, inpsub2,
   } else{
     third_column = inpConf[UI == inpsub1]$ID
   }
-
+ 
+  
   ggData = select_ggData(df_in = inpMeta,
                             select_columns = c(inpConf[UI == inp1]$ID, 
                                                inpConf[UI == inp2]$ID, 
