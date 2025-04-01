@@ -6,10 +6,9 @@ library(DT)
 library(magrittr) 
 library(bslib)
 library(plotly)
+library(dplyr)
 sc1conf = readRDS("sc1conf.rds")
 sc1def  = readRDS("sc1def.rds")
-
-
 
 ### Start server code 
 shinyUI(fluidPage( 
@@ -170,7 +169,7 @@ navbarPage(
     )    # End of fluidRow (4 space) 
   ),     # End of tab (2 space) 
  
-  ### Tab1.a2: Clonotype Information vs Clonotype Information
+  ### Tab1.a2: Compare Clonotype Attributes
   tabPanel( 
     HTML("Compare Clonotype Attributes"), 
     h4("Description"), 
