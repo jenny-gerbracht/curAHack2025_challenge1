@@ -19,7 +19,7 @@ list(tags$style(HTML(".navbar-default .navbar-nav { font-weight: bold; font-size
  
    
 ### Page title 
-titlePanel("curATarget Interactive Explorer: scRNA-seq & scTCR-seq Data"),
+titlePanel("ShinyCell TCR"),
 navbarPage( 
   NULL,  
  ### Tab1.a1: Gene Expression & Clonotype Overview
