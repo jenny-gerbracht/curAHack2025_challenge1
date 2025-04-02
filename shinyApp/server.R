@@ -11,11 +11,14 @@ library(ggdendro)
 library(gridExtra)
 library(plotly)
 library(ggthemes)
+
 sc1conf = readRDS("sc1conf.rds")
 sc1def  = readRDS("sc1def.rds")
 sc1gene = readRDS("sc1gene.rds")
 sc1meta = readRDS("sc1meta.rds")
 
+filterCounter <- reactiveVal(0)
+filter_columns <- reactiveVal(list())
 
 
 ### Useful stuff 
@@ -46,7 +49,26 @@ g_legend <- function(a.gplot){
   leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")  
   legend <- tmp$grobs[[leg]]  
   legend 
-}  
+
+} 
+
+get_filter_columns <- function(initial_filter, additional_filters, input) {
+  filters = initial_filter
+  for (filter_col in unlist(additional_filters)) {
+    filters <- c(filters, input[[filter_col]])
+  }
+  return(filters)
+}
+
+get_filter_values <- function(additional_filter_values_indices, input) {
+  values <- list(input[["sc1c2sub2"]])
+  for (filter_index in additional_filter_values_indices) {
+    id <- paste0("sc1c2sub2", filter_index)
+    values <- append(values, list(input[[id]]))
+  }
+  return(values)
+}
+
  
 # Plot theme 
 sctheme <- function(base_size = 24, XYval = TRUE, Xang = 0, XjusH = 0.5){ 
@@ -68,7 +90,34 @@ sctheme <- function(base_size = 24, XYval = TRUE, Xang = 0, XjusH = 0.5){
   } 
   return(oupTheme) 
 } 
- 
+
+#function to filter dataframe down to the required rows and select columns for plotting
+select_ggData <- function(df_in = inpMeta,
+                          select_columns = c(inpConf[UI == inp1]$ID, inpConf[UI == inp2]$ID),
+                          filter_columns = inpsub1,
+                          filter_values = inpsub2) {
+  ggData <- df_in
+  if (class(filter_values) != "list" && length(filter_columns) == 1){
+    filter_values <- list(filter_values)
+  }#sanitise input in case only one column is parsed with a simple character vector instead of a list.
+  
+  for (i in 1:length(filter_columns)){
+    column <- filter_columns[i]
+    values <- filter_values[[i]]
+    if(!is.null(values)){
+      ggData <- ggData[ggData[[column]] %in% values, ]
+    }
+  } 
+  # Select the specified columns
+  
+  #print(c(select_columns,filter_columns[1]))
+  ggData <- ggData[ ,select_columns, with = FALSE]
+  
+  return(ggData)
+}
+
+## function to create dataframes for plotting, including leftovers and  
+
 ### Common plotting functions 
 # Plot cell information on dimred 
 scDRcell <- function(inpConf, inpMeta, inpdrX, inpdrY, inp1, inpsub1, inpsub2, 
@@ -435,14 +484,39 @@ scVioBox <- function(inpConf, inpMeta, inp1, inp2,
 scProp <- function(inpConf, inpMeta, inp1, inp2, inpsub1, inpsub2, 
                    inptyp, inpflp, inpfsz){ 
   if(is.null(inpsub1)){inpsub1 = inpConf$UI[1]} 
+
+  
+  print("filter debug")
+  print(inpsub1)
+  print(inpsub2)
+  print("filter debug done")
+  
+  
   # Prepare ggData 
-  ggData = inpMeta[, c(inpConf[UI == inp1]$ID, inpConf[UI == inp2]$ID, 
-                       inpConf[UI == inpsub1]$ID),  
-                   with = FALSE] 
+  #ggData = inpMeta[, c(inpConf[UI == inp1]$ID, inpConf[UI == inp2]$ID, 
+  #                     inpConf[UI == inpsub1]$ID),  
+  #                 with = FALSE]
+  if (length(inpsub1)>1){
+    third_column = inpConf[UI == inpsub1[1] ]$ID 
+  } else{
+    third_column = inpConf[UI == inpsub1]$ID
+  }
+ 
+  
+  ggData = select_ggData(df_in = inpMeta,
+                            select_columns = c(inpConf[UI == inp1]$ID, 
+                                               inpConf[UI == inp2]$ID, 
+                                               third_column),
+                           filter_columns = inpsub1,
+                            filter_values = inpsub2)
   colnames(ggData) = c("X", "grp", "sub") 
-  if(length(inpsub2) != 0 & length(inpsub2) != nlevels(ggData$sub)){ 
-    ggData = ggData[sub %in% inpsub2] 
-  } 
+  #if(length(inpsub2) != 0 & length(inpsub2) != nlevels(ggData$sub)){ 
+  #  ggData = ggData[sub %in% inpsub2] 
+ # } 
+  print('number of remaining rows')
+  print(nrow(ggData))
+  
+
   ggData = ggData[, .(nCells = .N), by = c("X", "grp")] 
   ggData = ggData[, {tot = sum(nCells) 
                       .SD[,.(pctCells = 100 * sum(nCells) / tot, 
@@ -469,6 +543,7 @@ scProp <- function(inpConf, inpMeta, inp1, inp2, inpsub1, inpsub2,
   ggOut = ggOut + xlab(inp1) + 
     sctheme(base_size = sList[inpfsz], Xang = 45, XjusH = 1) +  
     scale_fill_manual("", values = ggCol) + 
+
     theme(
       legend.position = "right", 
       axis.text.x = element_text(size = 12), # Größe anpassen
@@ -478,6 +553,7 @@ scProp <- function(inpConf, inpMeta, inp1, inp2, inpsub1, inpsub2,
       
     ) 
   return(ggOut)
+
 } 
  
 # Get gene list 
@@ -547,7 +623,9 @@ scBubbHeat <- function(inpConf, inpMeta, inp, inpGrp, inpPlt,
       sctheme(base_size = sList[inpfsz]) + 
       theme(axis.title = element_blank(), axis.line = element_blank(), 
             axis.ticks = element_blank(), axis.text.y = element_blank(), 
+
             axis.text.x = element_text(color="cyan", angle = 45, hjust = 1, size = 0.1)) 
+
     ggData$geneName = factor(ggData$geneName, levels = hcRow$labels$label) 
   } else { 
     ggData$geneName = factor(ggData$geneName, levels = rev(geneList$gene)) 
@@ -572,17 +650,21 @@ scBubbHeat <- function(inpConf, inpMeta, inp, inpGrp, inpPlt,
     # Bubbleplot 
     ggOut = ggplot(ggData, aes(grpBy, geneName, color = val, size = prop)) + 
       geom_point() +  
+
       sctheme(base_size = sList[inpfsz], Xang = 90, XjusH = 1) +  
+
       scale_x_discrete(expand = c(0.05, 0)) +  
       scale_y_discrete(expand = c(0, 0.5)) + 
       scale_size_continuous("proportion", range = c(0, 8), 
                             limits = c(0, 1), breaks = c(0.00,0.25,0.50,0.75,1.00)) + 
       scale_color_gradientn("expression", limits = colRange, colours = cList[[inpcols]]) + 
       guides(color = guide_colorbar(barwidth = 15)) + 
+
       theme(axis.title = element_blank(), 
             legend.box = "vertical",
             axis.text.x = element_text(size = 12),
             axis.text.y = element_text(size = 12)) 
+
   } else { 
     # Heatmap 
     ggOut = ggplot(ggData, aes(grpBy, geneName, fill = val)) + 
@@ -592,9 +674,11 @@ scBubbHeat <- function(inpConf, inpMeta, inp, inpGrp, inpPlt,
       scale_y_discrete(expand = c(0, 0.5)) + 
       scale_fill_gradientn("expression", limits = colRange, colours = cList[[inpcols]]) + 
       guides(fill = guide_colorbar(barwidth = 15)) + 
+
       theme(axis.title = element_blank(),
             axis.text.x = element_text(size = 12),
             axis.text.y = element_text(size = 12))  # Adjust size here 
+
   } 
      
   # Final tidy 
@@ -679,6 +763,8 @@ shinyServer(function(input, output, session) {
     updateCheckboxGroupInput(session, inputId = "sc1a1sub2", label = "Select which cells to show", 
                              choices = sub, selected = sub, inline = TRUE) 
   }) 
+
+
   output$sc1a1oup1 <- renderPlotly({
     # Generate the ggplot using scDRcell()
     p <- scDRcell(sc1conf, sc1meta, input$sc1a1drX, input$sc1a1drY, 
@@ -715,7 +801,6 @@ shinyServer(function(input, output, session) {
     plotlyOutput("sc1a1oup1", height = pList[input$sc1a1psz]) 
   })
   
-  
   output$sc1a1oup1.pdf <- downloadHandler( 
     filename = function() { paste0("sc1",input$sc1a1drX,"_",input$sc1a1drY,"_",  
                                    input$sc1a1inp1,".pdf") }, 
@@ -745,6 +830,7 @@ shinyServer(function(input, output, session) {
       formatRound(columns = c("pctExpress"), digits = 2) 
   }) 
    
+
   output$sc1a1oup2 <- renderPlotly({
     # Generate the ggplot using scDRgene
     p <- scDRgene(sc1conf, sc1meta, input$sc1a1drX, input$sc1a1drY, input$sc1a1inp2,  
@@ -776,12 +862,7 @@ shinyServer(function(input, output, session) {
   })
   
 
-  
-  
-  
-  
-  
-  
+
   output$sc1a1oup2.pdf <- downloadHandler( 
     filename = function() { paste0("sc1",input$sc1a1drX,"_",input$sc1a1drY,"_",  
                                    input$sc1a1inp2,".pdf") }, 
@@ -822,7 +903,7 @@ shinyServer(function(input, output, session) {
     updateCheckboxGroupInput(session, inputId = "sc1a2sub2", label = "Select which cells to show", 
                              choices = sub, selected = sub, inline = TRUE) 
   }) 
-  
+ 
   
   output$sc1a2oup1 <- renderPlotly({ 
     # Generate the ggplot object using scDRcell()
@@ -854,9 +935,7 @@ shinyServer(function(input, output, session) {
   output$sc1a2oup1.ui <- renderUI({ 
     plotlyOutput("sc1a2oup1", height = pList[input$sc1a2psz]) 
   })
-  
-  
-  
+
   output$sc1a2oup1.pdf <- downloadHandler( 
     filename = function() { paste0("sc1",input$sc1a2drX,"_",input$sc1a2drY,"_",  
                                    input$sc1a2inp1,".pdf") }, 
@@ -878,6 +957,7 @@ shinyServer(function(input, output, session) {
                       input$sc1a2fsz, input$sc1a2asp, input$sc1a2txt, input$sc1a2lab1) ) 
   }) 
    
+
   output$sc1a2oup2 <- renderPlotly({ 
     # Generate the ggplot object using scDRcell()
     p <- scDRcell(sc1conf, sc1meta, input$sc1a2drX, input$sc1a2drY, input$sc1a2inp2,  
@@ -906,9 +986,6 @@ shinyServer(function(input, output, session) {
   output$sc1a2oup2.ui <- renderUI({ 
     plotlyOutput("sc1a2oup2", height = pList[input$sc1a2psz]) 
   })
-  
-  
-  
   
   output$sc1a2oup2.pdf <- downloadHandler( 
     filename = function() { paste0("sc1",input$sc1a2drX,"_",input$sc1a2drY,"_",  
@@ -947,6 +1024,7 @@ shinyServer(function(input, output, session) {
     sub = strsplit(sc1conf[UI == input$sc1a3sub1]$fID, "\\|")[[1]] 
     updateCheckboxGroupInput(session, inputId = "sc1a3sub2", label = "Select which cells to show", 
                              choices = sub, selected = sub, inline = TRUE) 
+
   })
   
   
@@ -981,7 +1059,7 @@ shinyServer(function(input, output, session) {
     plotlyOutput("sc1a3oup1", height = pList[input$sc1a3psz]) 
   }) 
   
-  
+
   output$sc1a3oup1.pdf <- downloadHandler( 
     filename = function() { paste0("sc1",input$sc1a3drX,"_",input$sc1a3drY,"_",  
                                    input$sc1a3inp1,".pdf") }, 
@@ -1077,20 +1155,18 @@ shinyServer(function(input, output, session) {
                              choices = sub, selected = sub, inline = TRUE) 
   }) 
   
-  
-  
   output$sc1b2oup1 <- renderPlotly({ 
+
     scDRcoex(sc1conf, sc1meta, input$sc1b2drX, input$sc1b2drY,   
              input$sc1b2inp1, input$sc1b2inp2, input$sc1b2sub1, input$sc1b2sub2, 
              "sc1gexpr.h5", sc1gene, 
              input$sc1b2siz, input$sc1b2col1, input$sc1b2ord1, 
              input$sc1b2fsz, input$sc1b2asp, input$sc1b2txt) 
   }) 
-  
-  
-  
+
   output$sc1b2oup1.ui <- renderUI({ 
     plotlyOutput("sc1b2oup1", height = pList2[input$sc1b2psz]) 
+
   }) 
   output$sc1b2oup1.pdf <- downloadHandler( 
     filename = function() { paste0("sc1",input$sc1b2drX,"_",input$sc1b2drY,"_",  
@@ -1114,11 +1190,13 @@ shinyServer(function(input, output, session) {
                       input$sc1b2siz, input$sc1b2col1, input$sc1b2ord1, 
                       input$sc1b2fsz, input$sc1b2asp, input$sc1b2txt) ) 
   }) 
+
   output$sc1b2oup2 <- renderPlotly({ 
     scDRcoexLeg(input$sc1b2inp1, input$sc1b2inp2, input$sc1b2col1, input$sc1b2fsz) 
   }) 
   output$sc1b2oup2.ui <- renderUI({ 
     plotlyOutput("sc1b2oup2", height = "300px") 
+
   }) 
   output$sc1b2oup2.pdf <- downloadHandler( 
     filename = function() { paste0("sc1",input$sc1b2drX,"_",input$sc1b2drY,"_",  
@@ -1159,17 +1237,19 @@ shinyServer(function(input, output, session) {
     updateCheckboxGroupInput(session, inputId = "sc1c1sub2", label = "Select which cells to show", 
                              choices = sub, selected = sub, inline = TRUE) 
   }) 
-  
+
   output$sc1c1oup <- renderPlotly({ 
+
     scVioBox(sc1conf, sc1meta, input$sc1c1inp1, input$sc1c1inp2, 
              input$sc1c1sub1, input$sc1c1sub2, 
              "sc1gexpr.h5", sc1gene, input$sc1c1typ, input$sc1c1pts, 
              input$sc1c1siz, input$sc1c1fsz) 
   }) 
-  
+ 
   
   output$sc1c1oup.ui <- renderUI({ 
     plotlyOutput("sc1c1oup", height = pList2[input$sc1c1psz]) 
+
   }) 
   output$sc1c1oup.pdf <- downloadHandler( 
     filename = function() { paste0("sc1",input$sc1c1typ,"_",input$sc1c1inp1,"_",  
@@ -1199,6 +1279,7 @@ shinyServer(function(input, output, session) {
     checkboxGroupInput("sc1c2sub2", "Select which cells to show", inline = TRUE, 
                        choices = sub, selected = sub) 
   }) 
+
   observeEvent(input$sc1c2sub1non, { 
     sub = strsplit(sc1conf[UI == input$sc1c2sub1]$fID, "\\|")[[1]] 
     updateCheckboxGroupInput(session, inputId = "sc1c2sub2", label = "Select which cells to show", 
@@ -1208,17 +1289,82 @@ shinyServer(function(input, output, session) {
     sub = strsplit(sc1conf[UI == input$sc1c2sub1]$fID, "\\|")[[1]] 
     updateCheckboxGroupInput(session, inputId = "sc1c2sub2", label = "Select which cells to show", 
                              choices = sub, selected = sub, inline = TRUE) 
-  }) 
+  })
   
-output$sc1c2oup <- renderPlotly({ 
+  observeEvent(input$sc1c2AddFilter, {
+    filterCounter(filterCounter() + 1)
+    remove_btn_id <- paste0("sc1c2DeleteFilter", filterCounter())
+    container_id <- paste0("sc1c2AdditionalFilter", filterCounter())
+    selectList <- paste0("sc1c2sub1", filterCounter())
+    checkGroup <- paste0("sc1c2sub2", filterCounter())
+    checkAll <- paste0("sc1c2sub1all", filterCounter())
+    checkNone <- paste0("sc1c2sub1non", filterCounter())
+    
+    sub = strsplit(sc1conf[UI == sc1def$grp1]$fID, "\\|")[[1]]
+    
+    insertUI(
+      selector = "#sc1c2AdditionalFilters",
+      where = "beforeEnd",
+      ui = div(
+        id = container_id,
+        style = "max-width: 100%;border-top: 2px solid black; padding-top:5px; margin-top:5px;",
+        selectInput(selectList, "Cell information to subset:", 
+                    choices = sc1conf[grp == TRUE]$UI, 
+                    selected = sc1def$grp1), 
+        checkboxGroupInput(checkGroup, "Select which cells to show", inline = TRUE, 
+                           choices = sub, selected = sub),
+        div(
+          actionButton(checkAll, "Select all groups", class = "btn btn-primary"), 
+          actionButton(checkNone, "Deselect all groups", class = "btn btn-primary")
+        ),
+        div(
+          style="margin-top:5px;",
+          actionButton(remove_btn_id, "Delete filter", class = "btn btn-primary")
+        )
+      )
+    )
+    
+    
+    tmp <- filter_columns()
+    tmp[[as.character(filterCounter())]] <- selectList
+    filter_columns(tmp)
+    #showNotification(paste(get_filter_columns(input$sc1c2sub1, filter_columns(), input), collapse=","))
+    #x <- get_filter_values(names(filter_columns()), input)
+
+    observeEvent(input[[selectList]], {
+      sub = strsplit(sc1conf[UI == input[[selectList]]]$fID, "\\|")[[1]]
+      updateCheckboxGroupInput(session, inputId = checkGroup, label = "Select which cells to show", 
+                               choices = sub, selected = sub, inline = TRUE) 
+    })
+    observeEvent(input[[checkAll]], { 
+      sub = strsplit(sc1conf[UI == input[[selectList]]]$fID, "\\|")[[1]] 
+      updateCheckboxGroupInput(session, inputId = checkGroup, label = "Select which cells to show", 
+                               choices = sub, selected = sub, inline = TRUE) 
+    }) 
+    observeEvent(input[[checkNone]], { 
+      sub = strsplit(sc1conf[UI == input[[selectList]]]$fID, "\\|")[[1]] 
+      updateCheckboxGroupInput(session, inputId = checkGroup, label = "Select which cells to show", 
+                               choices = sub, selected = NULL, inline = TRUE) 
+    }) 
+    
+    observeEvent(input[[remove_btn_id]], {
+      removeUI(selector = paste0('#', container_id))
+      tmp <- filter_columns()
+      tmp[[as.character(filterCounter())]] <- NULL
+      filter_columns(tmp)
+      showNotification(paste(get_filter_columns(input$sc1c2sub1, filter_columns(), input), collapse=","))
+    }, ignoreInit = TRUE)
+  })
+
+output$sc1c2oup <- renderPlot({
   scProp(sc1conf, sc1meta, input$sc1c2inp1, input$sc1c2inp2,  
-         input$sc1c2sub1, input$sc1c2sub2, 
+         get_filter_columns(input$sc1c2sub1, filter_columns(), input), 
+         get_filter_values(names(filter_columns()), input), 
          input$sc1c2typ, input$sc1c2flp, input$sc1c2fsz) 
 }) 
-
-
 output$sc1c2oup.ui <- renderUI({ 
-  plotlyOutput("sc1c2oup", height = pList2[input$sc1c2psz]) 
+  plotOutput("sc1c2oup", height = pList2[input$sc1c2psz]) 
+
 }) 
 output$sc1c2oup.pdf <- downloadHandler( 
   filename = function() { paste0("sc1",input$sc1c2typ,"_",input$sc1c2inp1,"_",  

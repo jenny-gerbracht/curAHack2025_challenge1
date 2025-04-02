@@ -4,6 +4,7 @@ library(data.table)
 library(Matrix) 
 library(DT) 
 library(magrittr) 
+
 library(bslib)
 library(plotly)
 library(dplyr)
@@ -14,12 +15,14 @@ sc1def  = readRDS("sc1def.rds")
 shinyUI(fluidPage( 
 ### HTML formatting of error messages 
  
+
 tags$head(tags$style(HTML(".shiny-output-error-validation {color: red; font-weight: bold;}"))), 
 list(tags$style(HTML(".navbar-default .navbar-nav { font-weight: bold; font-size: 16px; }"))), 
  
    
 ### Page title 
 titlePanel("ShinyCell TCR"),
+
 navbarPage( 
   NULL,  
  ### Tab1.a1: Gene Expression & Clonotype Overview
@@ -31,7 +34,6 @@ navbarPage(
     alongside gene expression patterns on low-dimensional embeddings. This allows 
     interactive exploration of relationships between T-cell clonality and 
     gene-expression profiles within single-cell datasets.",
-    
     
     br(),br(), 
     fluidRow( 
@@ -169,6 +171,7 @@ navbarPage(
     )    # End of fluidRow (4 space) 
   ),     # End of tab (2 space) 
  
+
   ### Tab1.a2: Compare Clonotype Attributes
   tabPanel( 
     HTML("Compare Clonotype Attributes"), 
@@ -178,6 +181,7 @@ navbarPage(
     features) side-by-side on low-dimensional visualizations. This allows the 
     exploration of how different clonotype characteristics correlate or differ 
     within the cellular landscape.", 
+
     br(),br(), 
     fluidRow( 
       column( 
@@ -313,6 +317,7 @@ navbarPage(
    
   ### Tab1.a3: geneExpr vs geneExpr on dimRed 
   tabPanel( 
+
     HTML("Gene Expression Comparison"), 
     h4("Description"), 
     "In this tab, users can interactively 
@@ -320,6 +325,7 @@ navbarPage(
     low-dimensional visualizations. This facilitates easy identification of gene
     co-expression, mutual exclusivity, or expression gradients across cell 
     populations or clonotypes.",
+
     br(),br(), 
     fluidRow( 
       column( 
@@ -447,12 +453,14 @@ navbarPage(
  
  ### Tab1.b2: Gene coexpression plot 
  tabPanel( 
+
    HTML("Gene Co-expressions"), 
    h4("Description"), 
    "In this tab, users can interactively visualize the co-expression of two 
    selected genes across T-cell receptor (TCR) clonotypes on low-dimensional 
    visualizations. This allows users to explore gene-gene relationships 
    specifically within clonally defined T-cell populations.",
+
    br(),br(), 
    fluidRow( 
      column( 
@@ -551,6 +559,7 @@ navbarPage(
        downloadButton("sc1b2oup2.png", "Download PNG"), 
        br(), h4("Cell numbers"), 
        dataTableOutput("sc1b2.dt") 
+
      )  # End of column (6 space) 
    )    # End of fluidRow (4 space) 
  ),     # End of tab (2 space) 
@@ -563,6 +572,7 @@ navbarPage(
    information (e.g., UMI counts, module scores) are distributed across different 
    groups of cells (e.g., clusters or samples). This view allows for comparison 
    of expression patterns and cell characteristics between defined populations.", 
+
    br(),br(), 
    fluidRow( 
      column( 
@@ -620,6 +630,7 @@ navbarPage(
    )    # End of fluidRow (4 space) 
  ),     # End of tab (2 space) 
  
+
 ### Tab1.c2: Cell Proportions by Group
 tabPanel( 
   HTML("Cell Proportions by Group"), 
@@ -630,6 +641,7 @@ tabPanel(
   shifts in cellular composition and identify group-specific patterns.", 
   br(),br(), 
   fluidRow( 
+
     column( 
       3, style="border-right: 2px solid black", 
       selectInput("sc1c2inp1", "Cell information to plot (X-axis):", 
@@ -658,11 +670,18 @@ tabPanel(
                     selected = sc1def$grp1), 
         uiOutput("sc1c2sub1.ui"), 
         actionButton("sc1c2sub1all", "Select all groups", class = "btn btn-primary"), 
-        actionButton("sc1c2sub1non", "Deselect all groups", class = "btn btn-primary") 
+
+        actionButton("sc1c2sub1non", "Deselect all groups", class = "btn btn-primary"),
+        uiOutput("sc1c2AdditionalFilters", style="opacity:1;margin-top:10px;"),
+        div(
+          style="margin-top:5px;padding-top:5px;border-top: 2px solid black;",
+          actionButton("sc1c2AddFilter", "Add another filter", class = "btn btn-primary")
+        )
       ), br(), br(), 
       actionButton("sc1c2tog", "Toggle graphics controls"), 
       conditionalPanel( 
-        condition = "input.sc1c2tog % 2 == 1", 
+        condition = "input.sc1c2tog % 2 == 1",
+
         radioButtons("sc1c2psz", "Plot size:", 
                      choices = c("Small", "Medium", "Large"), 
                      selected = "Medium", inline = TRUE), 
@@ -679,12 +698,15 @@ tabPanel(
            div(style="display:inline-block", 
                numericInput("sc1c2oup.w", "PDF / PNG width:", width = "138px", 
                             min = 4, max = 20, value = 10, step = 0.5)) 
-    )  # End of column (6 space) 
+
+    ),  # End of column (6 space) 
+
   )    # End of fluidRow (4 space) 
 ),     # End of tab (2 space) 
  
   ### Tab1.d1: Multiple gene expr 
   tabPanel( 
+
     HTML("Multi-Gene Expression Map by Group"), 
     h4("Description"), 
     "In this tab, users can visualize the average expression levels of selected 
@@ -692,6 +714,7 @@ tabPanel(
     to 50 gene names to generate a bubble plot or heatmap. Expression values are 
     normalized, log-transformed, and displayed to reveal gene expression patterns 
     and group-specific signatures.", 
+
     br(),br(), 
     fluidRow( 
       column( 
