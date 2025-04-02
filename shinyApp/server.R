@@ -776,7 +776,8 @@ shinyServer(function(input, output, session) {
     p <- p + 
       geom_point(aes(
         text = paste("Sample-ID:", sc1meta$sampleID,
-                     "<br>Age:", sc1meta$Ages)),
+                     "<br>Age:", sc1meta$Ages,
+                     "<br>Clonotype:", sc1meta$clonotype_authors)),
         size = 1.5,
         alpha = 0.4) +  # Adjust hover text, point size, and transparency
       theme(plot.title = element_text(size = 14, face = "bold"),
@@ -842,7 +843,8 @@ shinyServer(function(input, output, session) {
     p <- p + 
       geom_point(aes(
         text = paste("Sample-ID:", sc1meta$sampleID,
-                     "<br>Age:", sc1meta$Ages)),
+                     "<br>Age:", sc1meta$Ages,
+                     "<br>Clonotype:", sc1meta$clonotype_authors)),
         size = 1.5,
         alpha = 0.3) +  # Display hover text with relevant information
       theme(plot.title = element_text(size = 14, face = "bold"),
@@ -914,7 +916,8 @@ shinyServer(function(input, output, session) {
     p <- p + 
       geom_point(aes(
         text = paste("Sample-ID:", sc1meta$sampleID,
-                     "<br>Age:", sc1meta$Ages)),
+                     "<br>Age:", sc1meta$Ages,
+                     "<br>Clonotype:", sc1meta$clonotype_authors)),
         size = 1.5,
         alpha = 0.4) +  # Adjust transparency and size for clarity
       theme(plot.title = element_text(size = 14, face = "bold"),
@@ -966,7 +969,8 @@ shinyServer(function(input, output, session) {
     p <- p + 
       geom_point(aes(
         text = paste("Sample-ID:", sc1meta$sampleID,
-                     "<br>Age:", sc1meta$Ages)),
+                     "<br>Age:", sc1meta$Ages,
+                     "<br>Clonotype:", sc1meta$clonotype_authors)),
         size = 1.5,
         alpha = 0.4) +  # Adjust transparency and size for clarity
       theme(plot.title = element_text(size = 14, face = "bold"),
@@ -1036,7 +1040,8 @@ shinyServer(function(input, output, session) {
     p <- p + 
       geom_point(aes(
         text = paste("Sample-ID:", sc1meta$sampleID,
-                     "<br>Age:", sc1meta$Ages)),
+                     "<br>Age:", sc1meta$Ages,
+                     "<br>Clonotype:", sc1meta$clonotype_authors)),
         size = 1.5,
         alpha = 0.4) +  # Adjust transparency and size for clarity
       theme(plot.title = element_text(size = 14, face = "bold"),
@@ -1090,7 +1095,8 @@ shinyServer(function(input, output, session) {
     p <- p + 
       geom_point(aes(
         text = paste("Sample-ID:", sc1meta$sampleID,
-                     "<br>Age:", sc1meta$Ages)),
+                     "<br>Age:", sc1meta$Ages,
+                     "<br>Clonotype:", sc1meta$clonotype_authors)),
         size = 1.5,
         alpha = 0.4) +  # Adjust transparency and size for clarity
       theme(plot.title = element_text(size = 14, face = "bold"),
